@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class CallArrayList {
 
@@ -17,7 +18,7 @@ public class CallArrayList {
 
         // Домашнее задание
         DIYarrayList<Integer> numbers = new DIYarrayList<>();
-        DIYarrayList<Integer> numbers1 = new DIYarrayList<>();
+        List<Integer> numbers1 = new ArrayList<>();
         numbers.add(0,1);
         numbers.add(1,5);
         numbers.add(2,3);
@@ -39,12 +40,12 @@ public class CallArrayList {
 //        System.out.println("Результат addAll для DYIArrayList: " + numbers1);
 
         //Copy
-//        Collections.copy(numbers1, numbers);
+        Collections.copy(numbers1, numbers);
         System.out.println("Результат работы copy: " + numbers1);
 
         //Sort
-        Collections.sort(numbers);
-        System.out.println("Результат работы sort: " + numbers);
+//        Collections.sort(numbers);
+//        System.out.println("Результат работы sort: " + numbers);
 
 
     }
