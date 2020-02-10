@@ -17,21 +17,19 @@ public class CallArrayList {
 //        System.out.println("Значение " + value);
 
         // Домашнее задание
-        DIYarrayList<Integer> numbers = new DIYarrayList<>();
-        List<Integer> numbers1 = new ArrayList<>();
-        numbers.add(0,1);
-        numbers.add(1,5);
-        numbers.add(2,3);
-        numbers.add(3,33);
-        numbers.add(4,11);
-        numbers.add(5,6);
-        numbers.add(6,16);
-        System.out.println("Размер коллекции: " + numbers.size());
+        DIYarrayList<Integer> numbers = new DIYarrayList<>(Arrays.asList(1,2,5,7,4)) ;
+        DIYarrayList<Integer> numbers1 = new DIYarrayList<>();
+        System.out.println("Размер коллекции NUMBERS: " + numbers.size());
         System.out.println("Тип : " + numbers.getClass().getName());
         System.out.println("Вывод коллекции: " + numbers);
-        boolean a = Collections.addAll(numbers,2,4,5);
-        System.out.println("Результат addAll в домашнем задании: " + numbers);
 
+        boolean a = Collections.addAll(numbers,2,4,5,67,43,34,23,45,67,54,65,54,123,43,2,6,7);
+        System.out.println("Результат addAll в домашнем задании: " + numbers);
+        System.out.println("Размер коллекции после addAll: " + numbers.size());
+
+        numbers.add(20, 6);
+        System.out.println("Результат add в домашнем задании: " + numbers);
+        System.out.println("Размер коллекции после add: " + numbers.size());
 
 //        // Посмотреть как ведет себя ArrayList и сравнить с домашним заданием
 //        ArrayList<Integer> numbers1 = new ArrayList<>(Arrays.asList(1,3,5,4,87));
@@ -40,13 +38,15 @@ public class CallArrayList {
 //        System.out.println("Результат addAll для DYIArrayList: " + numbers1);
 
         //Copy
-        Collections.copy(numbers1, numbers);
-        System.out.println("Результат работы copy: " + numbers1);
+        DIYarrayList<Integer> firstArray = new DIYarrayList<>(Arrays.asList(1,3,5));
+        DIYarrayList<Integer> secondArray = new DIYarrayList<>(Arrays.asList(4,3,6,7));
+        Collections.copy(secondArray,firstArray);
+        System.out.println("Результат работы copy: " + secondArray);
 
         //Sort
-//        Collections.sort(numbers);
-//        System.out.println("Результат работы sort: " + numbers);
-
+        DIYarrayList<Integer> sortArray = new DIYarrayList<>(Arrays.asList(32,1,61));
+        Collections.sort(sortArray);
+        System.out.println("Результат работы sort: " + sortArray);
 
     }
 

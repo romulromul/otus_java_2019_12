@@ -1,27 +1,31 @@
+import jdk.internal.util.ArraysSupport;
+
 import java.lang.reflect.Array;
 import java.util.*;
 import java.util.function.Consumer;
 
 public class DIYarrayList<T> implements List<T> {
 
-    private final int init_size = 20;
+    private final int init_size = 4;
     private int size;
     transient Object[] myArray;
+    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
 
+    // конструктор
     public DIYarrayList() {
         this.myArray = new Object[init_size];
     }
 
     //копирование конструктора из ArrayList
-//    public DIYarrayList(Collection<? extends T> c) {
-//        myArray = c.toArray();
-//        if ((size = myArray.length) != 0) {
-//            if (myArray.getClass() != Object[].class)
-//                myArray = Arrays.copyOf(myArray, size, Object[].class);
-//        } else {
-//            this.myArray = new Object[init_size];
-//        }
-//    }
+    public DIYarrayList(Collection<? extends T> c) {
+        myArray = c.toArray();
+        if ((size = myArray.length) != 0) {
+            if (myArray.getClass() != Object[].class)
+                myArray = Arrays.copyOf(myArray, size, Object[].class);
+        } else {
+            this.myArray = new Object[init_size];
+        }
+    }
 
 
     //method Add
@@ -38,14 +42,45 @@ public class DIYarrayList<T> implements List<T> {
 
     @Override
     public void add(int index, T element) {
+        rangeCheckForAdd(index);
+        modCount++;
+        final int s;
+        Object[] elementData;
+        if ((s = size) == (elementData = this.myArray).length)
+            elementData = grow();
+        System.arraycopy(elementData, index,
+                elementData, index + 1,
+                s - index);
+        elementData[index] = element;
+        size = s + 1;
 
-        if (size > myArray.length - 1) {
-            doubleArray();
-        }
-// сделать смещение
-        myArray[index] = element;
-        size++;
     }
+
+    /**
+     * A version of rangeCheck used by add and addAll.
+     */
+    private void rangeCheckForAdd(int index) {
+        if (index > size || index < 0)
+            throw new IndexOutOfBoundsException((index));
+    }
+
+    private Object[] grow(int minCapacity) {
+        int oldCapacity = myArray.length;
+        if (oldCapacity > 0 || myArray != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
+            int newCapacity = ArraysSupport.newLength(oldCapacity,
+                    minCapacity - oldCapacity, /* minimum growth */
+                    oldCapacity >> 1           /* preferred growth */);
+            return myArray = Arrays.copyOf(myArray, newCapacity);
+        } else {
+            return myArray = new Object[Math.max(init_size, minCapacity)];
+        }
+    }
+
+    private Object[] grow() {
+        return grow(size + 1);
+    }
+
+
 
     @Override
     public int size() {
@@ -55,8 +90,10 @@ public class DIYarrayList<T> implements List<T> {
     //метод увеличение myArray
     private void doubleArray(){
         Object[] newArray = new Object[myArray.length * 2];
-        newArray = Arrays.copyOf(myArray, newArray.length);
+        System.arraycopy(myArray, 0, newArray, 0, size);
+//        newArray = Arrays.copyOf(myArray, newArray.length);
         myArray = newArray;
+        System.out.println("Метод doublearray. Размер увеличен до: " + this.size);
     }
 
     public String toString() {
@@ -141,9 +178,11 @@ public class DIYarrayList<T> implements List<T> {
 
     @Override
     public T set(int index, T element) {
-        throw new UnsupportedOperationException();
+        Objects.checkIndex(index, size);
+        T oldValue = myArray(index);
+        myArray[index] = element;
+        return oldValue;
     }
-
 
     @Override
     public T remove(int index) {
@@ -292,11 +331,11 @@ public class DIYarrayList<T> implements List<T> {
             int i = cursor - 1;
             if (i < 0)
                 throw new NoSuchElementException();
-            Object[] myArray = DIYarrayList.this.myArray;
-            if (i >= myArray.length)
+            Object[] elementData = DIYarrayList.this.myArray;
+            if (i >= elementData.length)
                 throw new ConcurrentModificationException();
             cursor = i;
-            return (T) myArray[lastRet = i];
+            return (T) elementData[lastRet = i];
         }
 
         public void set(T e) {
@@ -328,13 +367,10 @@ public class DIYarrayList<T> implements List<T> {
         /**
          * next
          */
-        @SuppressWarnings("unchecked")
+/*        @SuppressWarnings("unchecked")
         public T next() {
             return (T) myArray[cursor];
-        }
-
-
+        }*/
     }
-
 
 }
