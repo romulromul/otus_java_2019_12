@@ -12,6 +12,7 @@
 
     <modules>
         <module>hw01-maven</module>
+        <module>hw05-junit</module>
     </modules>
 
     <properties>
