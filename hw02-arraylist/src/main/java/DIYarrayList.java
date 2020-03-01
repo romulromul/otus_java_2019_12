@@ -1,37 +1,29 @@
-import jdk.internal.util.ArraysSupport;
-
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Consumer;
 
 public class DIYarrayList<T> implements List<T> {
 
+    // начальный размер 4
     private final int init_size = 4;
     private int size;
-    transient Object[] myArray;
-    private static final Object[] DEFAULTCAPACITY_EMPTY_ELEMENTDATA = {};
+    private Object[] myArray;
+    private Object[] myEmptyArray = {};
 
-    // конструктор
+    // конструктор для пустой коллекции
     public DIYarrayList() {
         this.myArray = new Object[init_size];
     }
 
-    //копирование конструктора из ArrayList
+    // конструктор для не-пустой коллекции
     public DIYarrayList(Collection<? extends T> c) {
-        myArray = c.toArray();
-        if ((size = myArray.length) != 0) {
-            if (myArray.getClass() != Object[].class)
-                myArray = Arrays.copyOf(myArray, size, Object[].class);
-        } else {
-            this.myArray = new Object[init_size];
-        }
+        this.myArray = new Object[c.size()];
+        this.size = c.size();
+        System.arraycopy(c.toArray(), 0, this.myArray, 0, size);
     }
 
-
-    //method Add
+    // переопределение метода Add
     @Override
     public boolean add(T element) {
-        if (size > myArray.length - 1){
+       if (size > myArray.length - 1){
             doubleArray();
         }
 
@@ -40,47 +32,42 @@ public class DIYarrayList<T> implements List<T> {
         return true;
     }
 
+    // переопределение метода Add
     @Override
     public void add(int index, T element) {
-        rangeCheckForAdd(index);
-        modCount++;
-        final int s;
-        Object[] elementData;
-        if ((s = size) == (elementData = this.myArray).length)
-            elementData = grow();
-        System.arraycopy(elementData, index,
-                elementData, index + 1,
-                s - index);
-        elementData[index] = element;
-        size = s + 1;
 
-    }
-
-    /**
-     * A version of rangeCheck used by add and addAll.
-     */
-    private void rangeCheckForAdd(int index) {
-        if (index > size || index < 0)
+        if (index > size)
             throw new IndexOutOfBoundsException((index));
+
+        Object[] elementData;
+        elementData = this.myArray;
+        elementData = grow();
+        System.arraycopy(elementData, index, elementData, index + 1, size - index);
+        elementData[index] = element;
+        size++;
+
+//        modCount++;
+//        final int s;
+//        Object[] elementData;
+//        if ((s = size) == (elementData = this.myArray).length)
+//            elementData = grow();
+//        System.arraycopy(elementData, index,
+//                elementData, index + 1,
+//                s - index);
+//        elementData[index] = element;
+//        size = s + 1;
+
     }
 
     private Object[] grow(int minCapacity) {
-        int oldCapacity = myArray.length;
-        if (oldCapacity > 0 || myArray != DEFAULTCAPACITY_EMPTY_ELEMENTDATA) {
-            int newCapacity = ArraysSupport.newLength(oldCapacity,
-                    minCapacity - oldCapacity, /* minimum growth */
-                    oldCapacity >> 1           /* preferred growth */);
-            return myArray = Arrays.copyOf(myArray, newCapacity);
-        } else {
-            return myArray = new Object[Math.max(init_size, minCapacity)];
-        }
+         Object[] newArray = new Object[myArray.length * 2];
+         System.arraycopy(myArray, 0, newArray, 0, size);
+         return (myArray = newArray);
     }
 
     private Object[] grow() {
         return grow(size + 1);
     }
-
-
 
     @Override
     public int size() {
@@ -91,9 +78,8 @@ public class DIYarrayList<T> implements List<T> {
     private void doubleArray(){
         Object[] newArray = new Object[myArray.length * 2];
         System.arraycopy(myArray, 0, newArray, 0, size);
-//        newArray = Arrays.copyOf(myArray, newArray.length);
         myArray = newArray;
-        System.out.println("Метод doublearray. Размер увеличен до: " + this.size);
+
     }
 
     public String toString() {
@@ -128,7 +114,7 @@ public class DIYarrayList<T> implements List<T> {
 
     @Override
     public Object[] toArray() {
-            return  Arrays.copyOfRange(myArray,0,size-1);
+            return  Arrays.copyOfRange(myArray,0,size);
     }
 
     @Override
@@ -201,7 +187,7 @@ public class DIYarrayList<T> implements List<T> {
 
     @Override
     public ListIterator<T> listIterator() {
-        return new DIYarrayList.ListItr(0);
+        return new DIYarrayList.DYIListListItr();
     }
 
     @Override
@@ -218,100 +204,45 @@ public class DIYarrayList<T> implements List<T> {
         throw new UnsupportedOperationException();
     }
 
-    /**
-     * Copy-paste from ArrayList
-     */
-
-    // Positional Access Operations
-
-    @SuppressWarnings("unchecked")
-    T myArray(int index) {
+    private T myArray(int index) {
         return (T) myArray[index];
     }
 
     @SuppressWarnings("unchecked")
     static <T> T elementAt(Object[] es, int index) {
-        return (T) es[index];
+        throw new UnsupportedOperationException();
     }
 
+    // Собственная реализация итератора
+    private class DYIListItr implements Iterator<T> {
+        int cursor;       // следующий элемент
+        int lastRet = -1; // последний возвращенный элемент; -1 если такого нет
 
-    protected transient int modCount = 0;
-
-    /**
-     * An optimized version of AbstractList.Itr
-     */
-    private class Itr implements Iterator<T> {
-        int cursor;       // index of next element to return
-        int lastRet = -1; // index of last element returned; -1 if no such
-        int expectedModCount = modCount;
-
-        // prevent creating a synthetic constructor
-        Itr() {}
-
+        // если не достиг конца списка - возвращай false
         public boolean hasNext() {
-            return cursor != size;
+            if (cursor != size)
+                return false;
+            else
+                return true;
         }
 
-        @SuppressWarnings("unchecked")
+        // возвращаем следующий элемент списка (если он есть)
         public T next() {
-            checkForComodification();
-            int i = cursor;
-            if (i >= size)
+            if (cursor >= size) // Если элемента нет, бросаем exception
                 throw new NoSuchElementException();
-            Object[] myArray = DIYarrayList.this.myArray;
-            if (i >= myArray.length)
-                throw new ConcurrentModificationException();
-            cursor = i + 1;
-            return (T) myArray[lastRet = i];
+            else
+               return (T) DIYarrayList.this.myArray[lastRet = cursor + 1];
         }
 
+        //удаление элемента
         public void remove() {
-            if (lastRet < 0)
-                throw new IllegalStateException();
-            checkForComodification();
-
-            try {
-                DIYarrayList.this.remove(lastRet);
-                cursor = lastRet;
-                lastRet = -1;
-                expectedModCount = modCount;
-            } catch (IndexOutOfBoundsException ex) {
-                throw new ConcurrentModificationException();
-            }
+            throw new UnsupportedOperationException();
         }
 
-        @Override
-        public void forEachRemaining(Consumer<? super T> action) {
-            Objects.requireNonNull(action);
-            final int size = DIYarrayList.this.size;
-            int i = cursor;
-            if (i < size) {
-                final Object[] es = myArray;
-                if (i >= es.length)
-                    throw new ConcurrentModificationException();
-                for (; i < size && modCount == expectedModCount; i++)
-                    action.accept(elementAt(es, i));
-                // update once at end to reduce heap write traffic
-                cursor = i;
-                lastRet = i - 1;
-                checkForComodification();
-            }
-        }
-
-        final void checkForComodification() {
-            if (modCount != expectedModCount)
-                throw new ConcurrentModificationException();
-        }
     }
 
-    /**
-     * An optimized version of AbstractList.ListItr
-     */
-    public class ListItr extends Itr implements ListIterator<T> {
-        ListItr(int index) {
-            super();
-            cursor = index;
-        }
+
+    public class DYIListListItr extends DYIListItr implements ListIterator<T> {
 
         public boolean hasPrevious() {
             return cursor != 0;
@@ -327,7 +258,7 @@ public class DIYarrayList<T> implements List<T> {
 
         @SuppressWarnings("unchecked")
         public T previous() {
-            checkForComodification();
+
             int i = cursor - 1;
             if (i < 0)
                 throw new NoSuchElementException();
@@ -341,7 +272,7 @@ public class DIYarrayList<T> implements List<T> {
         public void set(T e) {
             if (lastRet < 0)
                 throw new IllegalStateException();
-            checkForComodification();
+
 
             try {
                 DIYarrayList.this.set(lastRet, e);
@@ -351,26 +282,16 @@ public class DIYarrayList<T> implements List<T> {
         }
 
         public void add(T e) {
-            checkForComodification();
 
             try {
                 int i = cursor;
                 DIYarrayList.this.add(i, e);
                 cursor = i + 1;
                 lastRet = -1;
-                expectedModCount = modCount;
             } catch (IndexOutOfBoundsException ex) {
                 throw new ConcurrentModificationException();
             }
         }
 
-        /**
-         * next
-         */
-/*        @SuppressWarnings("unchecked")
-        public T next() {
-            return (T) myArray[cursor];
-        }*/
     }
-
 }
